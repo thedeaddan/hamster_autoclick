@@ -2,15 +2,18 @@ import requests
 import time
 import threading
 import random
-#Создайте файл token.py и в нем впишите 
-# token = "ВАШ ТОКЕН ИЗ ЗАПРОСА"
 from config import tokens
 
-url = 'https://api.hamsterkombat.io/clicker/tap'
+# Константы для URL
+BASE_URL = 'https://api.hamsterkombat.io/clicker'
+TAP_URL = f'{BASE_URL}/tap'
+SYNC_URL = f'{BASE_URL}/sync'
+BUY_BOOST_URL = f'{BASE_URL}/buy-boost'
+CHECK_TASK_URL = f'{BASE_URL}/check-task'
 
+# Генерация заголовков для запроса
 def generate_headers(token):
-    headers = {
-        #'Accept-Encoding': 'gzip, deflate, br, zstd',
+    return {
         'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
         'Connection': 'keep-alive',
         'Host': 'api.hamsterkombat.io',
@@ -27,69 +30,73 @@ def generate_headers(token):
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"'
     }
-    return headers
 
-def buy_boost(boost,headers,info):
-    url = "https://api.hamsterkombat.io/clicker/buy-boost"  
-
+# Покупка буста
+def buy_boost(boost_id, headers, user_id):
     payload = {
-            "boostId": boost,
-            "timestamp": int(time.time())  
-        }
-    response = requests.post(url, headers=headers, json=payload)
-    print(f'[{info.get("clickerUser").get("id")}]Отправлен запрос на покупку буста: {boost}, ответ: {response.status_code}')
+        "boostId": boost_id,
+        "timestamp": int(time.time())
+    }
+    response = requests.post(BUY_BOOST_URL, headers=headers, json=payload)
+    print(f'[{user_id}] Отправлен запрос на покупку буста: {boost_id}, ответ: {response.status_code}')
 
-def dayly_check(headers,info):
-    url = "https://api.hamsterkombat.io/clicker/check-task"  
+# Проверка ежедневной задачи
+def daily_check(headers, user_id):
     payload = {
-            "taskId": "streak_days",
-        }
-    response = requests.post(url, headers=headers, json=payload)
-    print(f'[{info.get("clickerUser").get("id")}]Отправлен запрос на ежедневную награду, ответ: {response.status_code}')
+        "taskId": "streak_days",
+    }
+    response = requests.post(CHECK_TASK_URL, headers=headers, json=payload)
+    print(f'[{user_id}] Отправлен запрос на ежедневную награду, ответ: {response.status_code}')
 
+# Получение бустов
 def get_boosts(token):
     while True:
         headers = generate_headers(token)
-        info = requests.post("https://api.hamsterkombat.io/clicker/sync", headers=headers).json()
-        buy_boost("BoostFullAvailableTaps",headers,info)
-        dayly_check(headers,info)
+        response = requests.post(SYNC_URL, headers=headers)
+        info = response.json()
+        user_id = info.get("clickerUser").get("id")
+        buy_boost("BoostFullAvailableTaps", headers, user_id)
+        daily_check(headers, user_id)
         time.sleep(3600)  # Спим 3600 секунд (1 час)
 
-
+# Создание потока для выполнения запросов
 def create_thread(token):
-    balance = 0
     while True:
         headers = generate_headers(token)
-        info = requests.post("https://api.hamsterkombat.io/clicker/sync", headers=headers).json()
-        availableTaps = int(info.get("clickerUser").get("availableTaps"))
-        passive_sec = info.get("clickerUser").get("earnPassivePerSec")
-        passive_hour = info.get("clickerUser").get("earnPassivePerHour")
-        user_id = info.get("clickerUser").get("id")
-        if availableTaps > 500:
-            availableTaps = random.randint(10,100)
+        response = requests.post(SYNC_URL, headers=headers)
+        info = response.json()
+        user = info.get("clickerUser")
+        available_taps = int(user.get("availableTaps"))
+        passive_sec = user.get("earnPassivePerSec")
+        passive_hour = user.get("earnPassivePerHour")
+        user_id = user.get("id")
+
+        if available_taps > 500:
+            available_taps = random.randint(10, 100)
+
         payload = {
-                "count": availableTaps,
-                "availableTaps": 0,
-                "timestamp": int(time.time())  
-            }
-        response = requests.post(url, headers=headers, json=payload)
+            "count": available_taps,
+            "availableTaps": 0,
+            "timestamp": int(time.time())
+        }
+        response = requests.post(TAP_URL, headers=headers, json=payload)
         json_data = response.json()
         balance = int(json_data.get('clickerUser').get('balanceCoins'))
-        # Выводим результат
-        print("="*5,f"Юзер {user_id}","="*5)
-        print(f"Баланс: {balance} мон. | Заработок в сек/час : {int(passive_sec)}/{int(passive_hour)} мон.")
-        print(f"Кликов отправлено: {availableTaps}")
-        
-        #print(json.dumps(json_data, indent=4))
+
+        # Вывод результата
+        print("=" * 5, f"Юзер {user_id}", "=" * 5)
+        print(f"Баланс: {balance} мон. | Заработок в сек/час: {int(passive_sec)}/{int(passive_hour)} мон.")
+        print(f"Кликов отправлено: {available_taps}")
+
         if response.status_code == 200:
-            wait = random.randint(7,20)
+            wait = random.randint(7, 20)
         else:
             print(f"Внимание! Статус-код: {response.status_code}! Ожидание повышено.")
-            wait = random.randint(300,600)
+            wait = random.randint(300, 600)
         print(f"Ожидание: {wait} сек.")
         time.sleep(wait)
 
+# Запуск потоков для каждого токена
 for token in tokens:
-    threading.Thread(target=create_thread,args=(token,)).start()
-    threading.Thread(target=get_boosts,args=(token,)).start()
-
+    threading.Thread(target=create_thread, args=(token,)).start()
+    threading.Thread(target=get_boosts, args=(token,)).start()
