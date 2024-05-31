@@ -29,32 +29,31 @@ def generate_headers(token):
     }
     return headers
 
-def buy_boost(boost,token):
+def buy_boost(boost,headers,info):
     url = "https://api.hamsterkombat.io/clicker/buy-boost"  
 
     payload = {
             "boostId": boost,
             "timestamp": int(time.time())  
         }
-    response = requests.post(url, headers=generate_headers(token), json=payload)
-    print(f"Отправлен запрос на покупку буста: {boost}, ответ: {response.status_code}")
+    response = requests.post(url, headers=headers, json=payload)
+    print(f'[{info.get("clickerUser").get("id")}]Отправлен запрос на покупку буста: {boost}, ответ: {response.status_code}')
 
-def dayly_check(token):
+def dayly_check(headers,info):
     url = "https://api.hamsterkombat.io/clicker/check-task"  
-
     payload = {
             "taskId": "streak_days",
         }
-    response = requests.post(url, headers=generate_headers(token), json=payload)
-    print(f"Отправлен запрос на ежедневную награду, ответ: {response.status_code}")
+    response = requests.post(url, headers=headers, json=payload)
+    print(f'[{info.get("clickerUser").get("id")}]Отправлен запрос на ежедневную награду, ответ: {response.status_code}')
 
-
-def periodic_post_request():
+def get_boosts(token):
     while True:
-        for token in tokens:
-            buy_boost("BoostFullAvailableTaps",token)
-            dayly_check(token)
-            time.sleep(3600)  # Спим 3600 секунд (1 час)
+        headers = generate_headers(token)
+        info = requests.post("https://api.hamsterkombat.io/clicker/sync", headers=headers).json()
+        buy_boost("BoostFullAvailableTaps",headers,info)
+        dayly_check(headers,info)
+        time.sleep(3600)  # Спим 3600 секунд (1 час)
 
 
 def create_thread(token):
@@ -92,6 +91,5 @@ def create_thread(token):
 
 for token in tokens:
     threading.Thread(target=create_thread,args=(token,)).start()
+    threading.Thread(target=get_boosts,args=(token,)).start()
 
-#Запуск потока бустов и ежедневок
-threading.Thread(target=periodic_post_request).start()
