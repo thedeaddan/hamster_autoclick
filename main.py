@@ -51,50 +51,60 @@ def daily_check(headers, user_id):
 # Получение бустов
 def get_boosts(token):
     while True:
-        headers = generate_headers(token)
-        response = requests.post(SYNC_URL, headers=headers)
-        info = response.json()
-        user_id = info.get("clickerUser").get("id")
-        buy_boost("BoostFullAvailableTaps", headers, user_id)
-        daily_check(headers, user_id)
-        time.sleep(3600)  # Спим 3600 секунд (1 час)
+        try:
+            headers = generate_headers(token)
+            response = requests.post(SYNC_URL, headers=headers)
+            if response.status_code in [200,400]:
+                info = response.json()
+                user_id = info.get("clickerUser").get("id")
+                buy_boost("BoostFullAvailableTaps", headers, user_id)
+                daily_check(headers, user_id)
+                time.sleep(3600)  # Спим 3600 секунд (1 час)
+            
+        except:
+            pass
 
 # Создание потока для выполнения запросов
 def create_thread(token):
     while True:
-        headers = generate_headers(token)
-        response = requests.post(SYNC_URL, headers=headers)
-        info = response.json()
-        user = info.get("clickerUser")
-        available_taps = int(user.get("availableTaps"))
-        passive_sec = user.get("earnPassivePerSec")
-        passive_hour = user.get("earnPassivePerHour")
-        user_id = user.get("id")
+        try:
+            headers = generate_headers(token)
+            response = requests.post(SYNC_URL, headers=headers)
+            if response.status_code == 200:
+                info = response.json()
+                user = info.get("clickerUser")
+                available_taps = int(user.get("availableTaps"))
+                passive_sec = user.get("earnPassivePerSec")
+                passive_hour = user.get("earnPassivePerHour")
+                user_id = user.get("id")
 
-        if available_taps > 500:
-            available_taps = random.randint(10, 100)
+                if available_taps > 500:
+                    available_taps = random.randint(500, 3000)
 
-        payload = {
-            "count": available_taps,
-            "availableTaps": 0,
-            "timestamp": int(time.time())
-        }
-        response = requests.post(TAP_URL, headers=headers, json=payload)
-        json_data = response.json()
-        balance = int(json_data.get('clickerUser').get('balanceCoins'))
+                payload = {
+                    "count": available_taps,
+                    "availableTaps": 0,
+                    "timestamp": int(time.time())
+                }
+                response = requests.post(TAP_URL, headers=headers, json=payload)
+                if response.status_code == 200:
+                    json_data = response.json()
+                    balance = int(json_data.get('clickerUser').get('balanceCoins'))
 
-        # Вывод результата
-        print("=" * 5, f"Юзер {user_id}", "=" * 5)
-        print(f"Баланс: {balance} мон. | Заработок в сек/час: {int(passive_sec)}/{int(passive_hour)} мон.")
-        print(f"Кликов отправлено: {available_taps}")
+                    # Вывод результата
+                    print("=" * 5, f"Юзер {user_id}", "=" * 5)
+                    print(f"Баланс: {balance} мон. | Заработок в сек/час: {int(passive_sec)}/{int(passive_hour)} мон.")
+                    print(f"Кликов отправлено: {available_taps}")
 
-        if response.status_code == 200:
-            wait = random.randint(7, 20)
-        else:
-            print(f"Внимание! Статус-код: {response.status_code}! Ожидание повышено.")
-            wait = random.randint(300, 600)
-        print(f"Ожидание: {wait} сек.")
-        time.sleep(wait)
+                    if response.status_code == 200:
+                        wait = random.randint(7, 20)
+                    else:
+                        print(f"Внимание! Статус-код: {response.status_code}! Ожидание повышено.")
+                        wait = random.randint(300, 600)
+                    print(f"Ожидание: {wait} сек.")
+                    time.sleep(wait)
+        except:
+            pass
 
 # Запуск потоков для каждого токена
 for token in tokens:
