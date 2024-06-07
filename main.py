@@ -4,16 +4,13 @@ import threading
 import random
 import traceback
 from modules.misc import *
-from config import tokens
+from config import tokens,profit_percent_global
 from modules.api import *
 
 # Константы для URL
 BASE_URL = 'https://api.hamsterkombat.io/clicker'
 TAP_URL = f'{BASE_URL}/tap'
 
-
-#Чем выше процент, тем менее выгодные карточки будет покупать бот, рекомендованное значение: 100-150
-profit_percent_global = 250
 def get_profit_upgrades(token):
     while True:
         try:
