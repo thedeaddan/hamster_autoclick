@@ -12,7 +12,7 @@ SYNC_URL = f'{BASE_URL}/sync'
 BUY_BOOST_URL = f'{BASE_URL}/buy-boost'
 CHECK_TASK_URL = f'{BASE_URL}/check-task'
 #Чем выше процент, тем менее выгодные карточки будет покупать бот, рекомендованное значение: 100-150
-profit_percent = 200
+profit_percent_global = 200
 
 # Генерация заголовков для запроса
 def generate_headers(token):
@@ -70,7 +70,7 @@ def get_boosts(token):
 def calc_profit(price,profit_per_hour):
     if price != 0 and profit_per_hour != 0:
         profit_percent = price/10/profit_per_hour*100
-        if profit_percent <= 200:
+        if profit_percent <= profit_percent_global:
             return True
         else:
             return False
