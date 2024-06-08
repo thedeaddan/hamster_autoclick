@@ -20,7 +20,7 @@ def check_maxlevel(upgrade):
         return False
     
 def check_cooldown(upgrade):
-    if upgrade.get("totalCooldownSeconds") != None:
+    if upgrade.get("cooldownSeconds") != None and upgrade.get("cooldownSeconds") != 0:
         return False
     else:
         return True

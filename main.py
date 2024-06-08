@@ -44,6 +44,7 @@ def get_profit_upgrades(token):
                             else:
                                 print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
                             time.sleep(2)
+                            break
             elif buy_type == "cheap":
                 upgrades = sorted(upgrades, key=lambda x: x['price'])
                 for upgrade in upgrades:
@@ -53,8 +54,8 @@ def get_profit_upgrades(token):
                     upgrade_id = upgrade.get("id")
                     unlocked = upgrade.get("isAvailable")
                     expired = upgrade.get("isExpired")
-                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit and price <= balance:
-                        if unlocked:
+                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and unlocked:
+                        if price <= cheap_limit and price < balance:
                             payload = {
                                 "upgradeId": upgrade_id,
                                 "timestamp": int(time.time())
@@ -65,6 +66,7 @@ def get_profit_upgrades(token):
                             else:
                                 print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
                             time.sleep(2)
+                            break
             elif buy_type == "profit":
                 upgrades = sorted(upgrades, key=lambda x: x['profitPerHour'],reverse=True)
                 for upgrade in upgrades:
@@ -75,7 +77,6 @@ def get_profit_upgrades(token):
                     unlocked = upgrade.get("isAvailable")
                     expired = upgrade.get("isExpired")
                     if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit and unlocked and price < balance:
-                        print(upgrade)
                         payload = {
                             "upgradeId": upgrade_id,
                             "timestamp": int(time.time())
