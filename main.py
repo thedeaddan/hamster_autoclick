@@ -11,7 +11,7 @@ from modules.api import *
 BASE_URL = 'https://api.hamsterkombat.io/clicker'
 TAP_URL = f'{BASE_URL}/tap'
 
-
+print(f"Стратегия покупки: {buy_type}")
 
 
 def get_profit_upgrades(token):
@@ -22,6 +22,7 @@ def get_profit_upgrades(token):
             info = requests.post(SYNC_URL, headers=headers).json()
             user = info.get("clickerUser")
             user_id = user.get("id")
+            balance = user.get("balanceCoins")
             upgrades = response.json().get("upgradesForBuy")            
             if buy_type == "benefit":
                 for upgrade in upgrades:
@@ -31,7 +32,7 @@ def get_profit_upgrades(token):
                     upgrade_id = upgrade.get("id")
                     unlocked = upgrade.get("isAvailable")
                     expired = upgrade.get("isExpired")
-                    if calc_profit(profit_percent_global,price,profit) and not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
+                    if calc_profit(profit_percent_global,price,profit) and not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit and price <= balance:
                         if unlocked:
                             payload = {
                                 "upgradeId": upgrade_id,
@@ -52,7 +53,7 @@ def get_profit_upgrades(token):
                     upgrade_id = upgrade.get("id")
                     unlocked = upgrade.get("isAvailable")
                     expired = upgrade.get("isExpired")
-                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
+                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit and price <= balance:
                         if unlocked:
                             payload = {
                                 "upgradeId": upgrade_id,
@@ -73,18 +74,19 @@ def get_profit_upgrades(token):
                     upgrade_id = upgrade.get("id")
                     unlocked = upgrade.get("isAvailable")
                     expired = upgrade.get("isExpired")
-                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
-                        if unlocked:
-                            payload = {
-                                "upgradeId": upgrade_id,
-                                "timestamp": int(time.time())
-                            }
-                            response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
-                            if response.status_code == 200:
-                                print(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
-                            else:
-                                print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
-                            time.sleep(2)
+                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit and unlocked and price < balance:
+                        print(upgrade)
+                        payload = {
+                            "upgradeId": upgrade_id,
+                            "timestamp": int(time.time())
+                        }
+                        response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
+                        if response.status_code == 200:
+                            print(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
+                            break
+                        else:
+                            print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
+                        time.sleep(2)
             time.sleep(3)
         except:
             print(traceback.format_exc())
@@ -134,6 +136,6 @@ def create_thread(token):
 
 # Запуск потоков для каждого токена
 for token in tokens:
-    # threading.Thread(target=create_thread, args=(token,)).start()
-    # threading.Thread(target=get_boosts, args=(generate_headers,token,)).start()
+    threading.Thread(target=create_thread, args=(token,)).start()
+    threading.Thread(target=get_boosts, args=(generate_headers,token,)).start()
     threading.Thread(target=get_profit_upgrades, args=(token,)).start()
