@@ -39,7 +39,7 @@ def get_profit_upgrades(token):
                             }
                             response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
                             if response.status_code == 200:
-                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
                             else:
                                 print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
                             time.sleep(2)
@@ -60,7 +60,7 @@ def get_profit_upgrades(token):
                             }
                             response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
                             if response.status_code == 200:
-                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
                             else:
                                 print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
                             time.sleep(2)
@@ -81,7 +81,7 @@ def get_profit_upgrades(token):
                             }
                             response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
                             if response.status_code == 200:
-                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
                             else:
                                 print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
                             time.sleep(2)
@@ -134,6 +134,6 @@ def create_thread(token):
 
 # Запуск потоков для каждого токена
 for token in tokens:
-    threading.Thread(target=create_thread, args=(token,)).start()
-    threading.Thread(target=get_boosts, args=(generate_headers,token,)).start()
+    # threading.Thread(target=create_thread, args=(token,)).start()
+    # threading.Thread(target=get_boosts, args=(generate_headers,token,)).start()
     threading.Thread(target=get_profit_upgrades, args=(token,)).start()
