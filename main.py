@@ -23,7 +23,7 @@ def get_profit_upgrades(token):
             user = info.get("clickerUser")
             user_id = get_name(token)
             balance = user.get("balanceCoins")
-            upgrades = response.json().get("upgradesForBuy")            
+            upgrades = response.json().get("upgradesForBuy")
             if buy_type == "benefit":
                 for upgrade in upgrades:
                     profit = int(upgrade.get("profitPerHourDelta"))
@@ -122,7 +122,7 @@ def create_thread(token):
 
                     # Вывод результата
                     print("=" * 20, f"{user_id}", "=" * 20)
-                    print(f"Баланс: {balance} мон. | Заработок в сек/час: {int(passive_sec)}/{int(passive_hour)} мон.")
+                    print(f"Баланс: {format_number_with_dots(balance)} мон. | Заработок в час: {format_number_with_dots(passive_hour)} мон.")
                     print(f"Кликов отправлено: {available_taps}")
 
                     if response.status_code == 200:

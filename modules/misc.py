@@ -47,3 +47,17 @@ def generate_headers(token):
 
 def get_name(token):
     return names[tokens.index(token)]
+
+def format_number_with_dots(number):
+    """
+    Форматирует число, добавляя точки в качестве разделителей тысячных разрядов.
+    
+    :param number: Число для форматирования (int или float)
+    :return: Форматированное число в виде строки
+    """
+    if isinstance(number, float):
+        # Сохранение десятичных знаков
+        return "{:,.2f}".format(number).replace(",", ".")
+    else:
+        # Для целых чисел
+        return "{:,.0f}".format(number).replace(",", ".")
