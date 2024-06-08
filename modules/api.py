@@ -1,6 +1,7 @@
 import requests
 import time
 import traceback
+from modules.misc import get_name
 
 BASE_URL = 'https://api.hamsterkombat.io/clicker'
 BUY_BOOST_URL = f'{BASE_URL}/buy-boost'
@@ -28,13 +29,10 @@ def get_boosts(generate_headers,token):
     while True:
         try:
             headers = generate_headers(token)
-            response = requests.post(SYNC_URL, headers=headers)
-            if response.status_code in [200,400]:
-                info = response.json()
-                user_id = info.get("clickerUser").get("id")
-                buy_boost("BoostFullAvailableTaps", headers, user_id)
-                daily_check(headers, user_id)
-                time.sleep(3600)  # Спим 3600 секунд (1 час)
+            user_id = get_name(token)
+            buy_boost("BoostFullAvailableTaps", headers, user_id)
+            daily_check(headers, user_id)
+            time.sleep(3600)  # Спим 3600 секунд (1 час)
         except Exception as e:
             print(traceback.format_exc())
 

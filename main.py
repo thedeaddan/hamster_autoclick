@@ -121,7 +121,7 @@ def create_thread(token):
                     balance = int(json_data.get('clickerUser').get('balanceCoins'))
 
                     # Вывод результата
-                    print("=" * 5, f"Юзер {user_id}", "=" * 5)
+                    print("=" * 20, f"{user_id}", "=" * 20)
                     print(f"Баланс: {balance} мон. | Заработок в сек/час: {int(passive_sec)}/{int(passive_hour)} мон.")
                     print(f"Кликов отправлено: {available_taps}")
 
