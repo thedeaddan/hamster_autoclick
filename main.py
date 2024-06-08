@@ -4,12 +4,15 @@ import threading
 import random
 import traceback
 from modules.misc import *
-from config import tokens,profit_percent_global
+from config import *
 from modules.api import *
 
 # Константы для URL
 BASE_URL = 'https://api.hamsterkombat.io/clicker'
 TAP_URL = f'{BASE_URL}/tap'
+
+
+
 
 def get_profit_upgrades(token):
     while True:
@@ -19,26 +22,69 @@ def get_profit_upgrades(token):
             info = requests.post(SYNC_URL, headers=headers).json()
             user = info.get("clickerUser")
             user_id = user.get("id")
-            upgrades = response.json().get("upgradesForBuy")
-            for upgrade in upgrades:
-                profit = int(upgrade.get("profitPerHourDelta"))
-                price = int(upgrade.get("price"))
-                name = upgrade.get("name")
-                upgrade_id = upgrade.get("id")
-                unlocked = upgrade.get("isAvailable")
-                expired = upgrade.get("isExpired")
-                if calc_profit(profit_percent_global,price,profit) and not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade):
-                    if unlocked:
-                        payload = {
-                            "upgradeId": upgrade_id,
-                            "timestamp": int(time.time())
-                        }
-                        response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
-                        if response.status_code == 200:
-                            print(f"[{user_id}][{name}] Куплено!")
-                        else:
-                            print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
-                        time.sleep(2)
+            upgrades = response.json().get("upgradesForBuy")            
+            if buy_type == "benefit":
+                for upgrade in upgrades:
+                    profit = int(upgrade.get("profitPerHourDelta"))
+                    price = int(upgrade.get("price"))
+                    name = upgrade.get("name")
+                    upgrade_id = upgrade.get("id")
+                    unlocked = upgrade.get("isAvailable")
+                    expired = upgrade.get("isExpired")
+                    if calc_profit(profit_percent_global,price,profit) and not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
+                        if unlocked:
+                            payload = {
+                                "upgradeId": upgrade_id,
+                                "timestamp": int(time.time())
+                            }
+                            response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
+                            if response.status_code == 200:
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                            else:
+                                print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
+                            time.sleep(2)
+            elif buy_type == "cheap":
+                upgrades = sorted(upgrades, key=lambda x: x['price'])
+                for upgrade in upgrades:
+                    profit = int(upgrade.get("profitPerHourDelta"))
+                    price = int(upgrade.get("price"))
+                    name = upgrade.get("name")
+                    upgrade_id = upgrade.get("id")
+                    unlocked = upgrade.get("isAvailable")
+                    expired = upgrade.get("isExpired")
+                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
+                        if unlocked:
+                            payload = {
+                                "upgradeId": upgrade_id,
+                                "timestamp": int(time.time())
+                            }
+                            response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
+                            if response.status_code == 200:
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                            else:
+                                print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
+                            time.sleep(2)
+            elif buy_type == "profit":
+                upgrades = sorted(upgrades, key=lambda x: x['profitPerHour'],reverse=True)
+                for upgrade in upgrades:
+                    profit = int(upgrade.get("profitPerHourDelta"))
+                    price = int(upgrade.get("price"))
+                    name = upgrade.get("name")
+                    upgrade_id = upgrade.get("id")
+                    unlocked = upgrade.get("isAvailable")
+                    expired = upgrade.get("isExpired")
+                    if not expired and not check_maxlevel(upgrade) and check_cooldown(upgrade) and price <= cheap_limit:
+                        if unlocked:
+                            payload = {
+                                "upgradeId": upgrade_id,
+                                "timestamp": int(time.time())
+                            }
+                            response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json = payload, headers=headers)
+                            if response.status_code == 200:
+                                print(f"[{user_id}][{name}] Куплено! | Цена: {price}")
+                            else:
+                                print(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
+                            time.sleep(2)
             time.sleep(3)
         except:
             print(traceback.format_exc())
