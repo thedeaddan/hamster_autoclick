@@ -1,4 +1,4 @@
-
+from config import names,tokens
 def calc_profit(profit_percent_global,price,profit_per_hour):
     if price != 0 and profit_per_hour != 0:
         profit_percent = price/10/profit_per_hour*100
@@ -44,3 +44,6 @@ def generate_headers(token):
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"'
     }
+
+def get_name(token):
+    return names[tokens.index(token)]

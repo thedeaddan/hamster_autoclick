@@ -21,7 +21,7 @@ def get_profit_upgrades(token):
             response = requests.post("https://api.hamsterkombat.io/clicker/upgrades-for-buy", headers=headers)
             info = requests.post(SYNC_URL, headers=headers).json()
             user = info.get("clickerUser")
-            user_id = user.get("id")
+            user_id = get_name(token)
             balance = user.get("balanceCoins")
             upgrades = response.json().get("upgradesForBuy")            
             if buy_type == "benefit":
@@ -105,7 +105,7 @@ def create_thread(token):
                 available_taps = int(user.get("availableTaps"))
                 passive_sec = user.get("earnPassivePerSec")
                 passive_hour = user.get("earnPassivePerHour")
-                user_id = user.get("id")
+                user_id = get_name(token)
 
                 if available_taps > 500:
                     available_taps = random.randint(500, 3000)
