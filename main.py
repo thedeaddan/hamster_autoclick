@@ -137,7 +137,6 @@ def create_thread(token):
 
 # Запуск потоков для каждого токена
 for token in tokens:
-    word = "WALLET"
     send_word(word,generate_headers,token)
     threading.Thread(target=create_thread, args=(token,)).start()
     threading.Thread(target=get_boosts, args=(generate_headers,token,)).start()
