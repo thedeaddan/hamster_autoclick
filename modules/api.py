@@ -45,3 +45,13 @@ def get_user_info(generate_headers,token):
     passive_sec = user.get("earnPassivePerSec")
     passive_hour = user.get("earnPassivePerHour")
     return user,user_id,available_taps,passive_sec,passive_hour
+
+
+def send_word(word,generate_headers,token):
+    headers = generate_headers(token)
+    user_id = get_name(token)
+    payload = {
+        "cipher": word
+    }
+    response = requests.post("https://api.hamsterkombat.io/clicker/claim-daily-cipher", headers=headers, json=payload)
+    print(f'[{user_id}] Отправлен запрос на отгадку шифра, ответ: {response.status_code}')
