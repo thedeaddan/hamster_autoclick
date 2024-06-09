@@ -61,3 +61,5 @@ def format_number_with_dots(number):
     else:
         # Для целых чисел
         return "{:,.0f}".format(number).replace(",", ".")
+    
+
