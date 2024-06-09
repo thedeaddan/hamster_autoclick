@@ -51,6 +51,7 @@ def daily_check(headers, user_id):
         logger.error(f'[{user_id}] Ошибка при запросе на ежедневную награду, ответ: {response.status_code}')
 
 def get_boosts(generate_headers, token):
+    time.sleep(5)
     while True:
         try:
             headers = generate_headers(token)

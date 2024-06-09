@@ -89,9 +89,8 @@ def should_buy_upgrade(upgrade, balance):
         unlocked
     )
 
-
-
 def create_thread(token):
+    time.sleep(10)
     while True:
         try:
             headers = generate_headers(token)
@@ -134,9 +133,6 @@ def create_thread(token):
 # Запуск потоков для каждого токена
 for token in tokens:
     send_word(word, generate_headers, token)
-    time.sleep(3)
     threading.Thread(target=get_boosts, args=(generate_headers, token,)).start()
-    time.sleep(3)
     threading.Thread(target=get_profit_upgrades, args=(token,)).start()
-    time.sleep(3)
     threading.Thread(target=create_thread, args=(token,)).start()
