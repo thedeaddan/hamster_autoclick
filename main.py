@@ -35,59 +35,64 @@ logger.info(f"Стратегия покупки: {buy_type}")
 def get_profit_upgrades(token):
     while True:
         try:
-            headers = generate_headers(token)
-            response = requests.post("https://api.hamsterkombat.io/clicker/upgrades-for-buy", headers=headers)
-            response.raise_for_status()
-            info = requests.post(SYNC_URL, headers=headers).json()
-            user = info.get("clickerUser")
             user_id = get_name(token)
-            balance = user.get("balanceCoins")
-            upgrades = response.json().get("upgradesForBuy")
+            headers = generate_headers(token)
+            upgrades = get_upgrades(generate_headers,token)
 
             if buy_type == "benefit":
-                process_upgrades_by_benefit(upgrades, headers, user_id, balance)
+                process_upgrades_by_benefit(upgrades, headers, user_id,token)
             elif buy_type == "cheap":
-                process_upgrades_by_price(upgrades, headers, user_id, balance)
+                process_upgrades_by_price(upgrades, headers, user_id,token)
             elif buy_type == "profit":
-                process_upgrades_by_profit(upgrades, headers, user_id, balance)
+                process_upgrades_by_profit(upgrades, headers, user_id,token)
 
             time.sleep(3)
         except Exception as e:
             logger.error("Exception occurred", exc_info=True)
             time.sleep(5)
 
-def process_upgrades_by_benefit(upgrades, headers, user_id, balance):
+def process_upgrades_by_benefit(upgrades, headers, user_id,token):
     for upgrade in upgrades:
-        if should_buy_upgrade(upgrade, balance):
+        profit = int(upgrade.get("profitPerHourDelta"))
+        price = int(upgrade.get("price"))
+        if should_buy_upgrade(upgrade) and calc_profit(profit_percent_global, price, profit) and check_balance(token,price):
             buy_upgrade(upgrade, headers, user_id)
 
-def process_upgrades_by_price(upgrades, headers, user_id, balance):
+def process_upgrades_by_price(upgrades, headers, user_id,token):
     upgrades = sorted(upgrades, key=lambda x: x['price'])
     for upgrade in upgrades:
-        if should_buy_upgrade(upgrade, balance):
-            buy_upgrade(upgrade, headers, user_id)
+        if should_buy_upgrade(upgrade):
+            price = int(upgrade.get("price"))
+            if check_balance(token,price):
+                buy_upgrade(upgrade, headers, user_id)
 
-def process_upgrades_by_profit(upgrades, headers, user_id, balance):
+def process_upgrades_by_profit(upgrades, headers, user_id,token):
     upgrades = sorted(upgrades, key=lambda x: x['profitPerHour'], reverse=True)
     for upgrade in upgrades:
-        if should_buy_upgrade(upgrade, balance):
-            buy_upgrade(upgrade, headers, user_id)
+        if should_buy_upgrade(upgrade):
+            price = int(upgrade.get("price"))
+            if check_balance(token,price):
+                buy_upgrade(upgrade, headers, user_id)
 
-def should_buy_upgrade(upgrade, balance):
-    profit = int(upgrade.get("profitPerHourDelta"))
-    price = int(upgrade.get("price"))
+def should_buy_upgrade(upgrade):
     unlocked = upgrade.get("isAvailable")
     expired = upgrade.get("isExpired")
-
+    price = int(upgrade.get("price"))
     return (
-        calc_profit(profit_percent_global, price, profit) and
         not expired and
         not check_maxlevel(upgrade) and
         check_cooldown(upgrade) and
         price <= cheap_limit and
-        price <= balance and
         unlocked
     )
+
+def check_balance(token,price):
+    balance = get_user_info(generate_headers,token)[0]
+    if balance > price:
+        return True
+    else:
+        return False
+
 
 def create_thread(token):
     time.sleep(10)

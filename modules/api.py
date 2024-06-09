@@ -71,7 +71,14 @@ def get_user_info(generate_headers, token):
     available_taps = int(user.get("availableTaps"))
     passive_sec = user.get("earnPassivePerSec")
     passive_hour = user.get("earnPassivePerHour")
-    return user, user_id, available_taps, passive_sec, passive_hour
+    balance = user.get("balanceCoins")
+    return balance, user_id, available_taps, passive_sec, passive_hour
+
+def get_upgrades(generate_headers,token):
+    headers = generate_headers(token)
+    info = requests.post("https://api.hamsterkombat.io/clicker/upgrades-for-buy", headers=headers).json().get("upgradesForBuy")
+    return info
+
 
 def send_word(word, generate_headers, token):
     headers = generate_headers(token)
@@ -96,7 +103,7 @@ def buy_upgrade(upgrade, headers, user_id):
     }
     response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json=payload, headers=headers)
     if response.status_code == 200:
-        logger.info(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
+        logger.debug(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
     else:
         logger.error(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
     time.sleep(2)
