@@ -104,7 +104,7 @@ def buy_daily_cards(token):
         logger.debug(f"[{user_id}] Карты: {unlocked_cards}")
         
         if len(unlocked_cards) == 3:
-            send_daily(token)
+            send_daily(generate_headers,token)
             break
         else:
             for upgrade in upgrades:
@@ -160,24 +160,7 @@ def create_thread(token):
             logger.error("Exception occurred", exc_info=True)
             time.sleep(5)
 
-def send_daily(token):
-    user_info = get_user_info(generate_headers,token)[5].get("clickerUser")
-    info, upgrades = get_upgrades(generate_headers,token)
-    daily_combo = info.get("dailyCombo")
-    upgrade_ids = ['influencers', 'shit_coins', 'meme_coins']
-    daily_combo['upgradeIds'] = upgrade_ids
-    daily_combo['isClaimed'] = True
 
-    payload = {
-                "clickerUser": user_info,
-                "dailyCombo": daily_combo,
-                "upgradeIds": upgrade_ids
-            }
-    response = requests.post("https://api.hamsterkombat.io/clicker/claim-daily-combo", headers=generate_headers(token), json=payload)
-    if response.status_code != 400:
-        logger.debug(f"[{get_name(token)}] Забрал 5 млн. за ежедневное комбо")
-    else:
-        logger.warning(f"[{get_name(token)}] Ежедневное комбо уже собрано")
 
 # Запуск потоков для каждого токена
 for token in tokens:
