@@ -37,7 +37,7 @@ def get_profit_upgrades(token):
         try:
             user_id = get_name(token)
             headers = generate_headers(token)
-            upgrades = get_upgrades(generate_headers,token)
+            upgrades = get_upgrades(generate_headers,token)[1]
 
             if buy_type == "benefit":
                 process_upgrades_by_benefit(upgrades, headers, user_id,token)
@@ -92,7 +92,29 @@ def check_balance(token,price):
         return True
     else:
         return False
+    
 
+def buy_daily_cards(token):
+    user_cards = []
+    user_cards += daily_cards
+    while True: 
+        info, upgrades = get_upgrades(generate_headers,token)
+        user_id = get_name(token)
+        unlocked_cards = info.get("dailyCombo").get("upgradeIds")
+        if len(unlocked_cards) == 3:
+            break
+        else:
+            for upgrade in upgrades:
+                upgrade_name = upgrade.get("name")
+                upgrade_id = upgrade.get("id")
+                for card in user_cards:
+                    if upgrade_name.lower() == card.lower():
+                        if upgrade_id in unlocked_cards and unlocked_cards != []:
+                            user_cards.remove(card)
+                        else:
+                            buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
+        time.sleep(60)
+        
 
 def create_thread(token):
     time.sleep(10)
@@ -104,7 +126,6 @@ def create_thread(token):
             info = response.json()
             user = info.get("clickerUser")
             available_taps = int(user.get("availableTaps"))
-            passive_sec = user.get("earnPassivePerSec")
             passive_hour = user.get("earnPassivePerHour")
             user_id = get_name(token)
 
@@ -137,7 +158,8 @@ def create_thread(token):
 
 # Запуск потоков для каждого токена
 for token in tokens:
-    send_word(word, generate_headers, token)
-    threading.Thread(target=get_boosts, args=(generate_headers, token,)).start()
-    threading.Thread(target=get_profit_upgrades, args=(token,)).start()
-    threading.Thread(target=create_thread, args=(token,)).start()
+    # send_word(word, generate_headers, token)
+    # threading.Thread(target=get_boosts, args=(generate_headers, token,)).start()
+    # threading.Thread(target=get_profit_upgrades, args=(token,)).start()
+    # threading.Thread(target=create_thread, args=(token,)).start()
+    threading.Thread(target=buy_daily_cards, args=(token,)).start()

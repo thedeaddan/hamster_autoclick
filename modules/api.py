@@ -76,8 +76,9 @@ def get_user_info(generate_headers, token):
 
 def get_upgrades(generate_headers,token):
     headers = generate_headers(token)
-    info = requests.post("https://api.hamsterkombat.io/clicker/upgrades-for-buy", headers=headers).json().get("upgradesForBuy")
-    return info
+    info = requests.post("https://api.hamsterkombat.io/clicker/upgrades-for-buy", headers=headers).json()
+    upgrades = info.get("upgradesForBuy")
+    return info,upgrades
 
 
 def send_word(word, generate_headers, token):
@@ -104,6 +105,11 @@ def buy_upgrade(upgrade, headers, user_id):
     response = requests.post("https://api.hamsterkombat.io/clicker/buy-upgrade", json=payload, headers=headers)
     if response.status_code == 200:
         logger.debug(f"[{user_id}][{name}] Куплено! | Цена: {price} | Профит/ч: {profit}")
+        return True
     else:
-        logger.error(f"[{user_id}][{name}] Ошибка, код: {response.status_code}")
+        if "Insufficient funds" in response.text:
+            logger.error(f"[{user_id}][{name}] Ошибка покупки, недостаточно средств.")
+        else:
+            logger.error(f"[{user_id}][{name}] Ошибка, код: {response.text}")
+        return False
     time.sleep(2)
