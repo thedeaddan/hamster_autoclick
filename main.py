@@ -101,7 +101,10 @@ def buy_daily_cards(token):
         info, upgrades = get_upgrades(generate_headers,token)
         user_id = get_name(token)
         unlocked_cards = info.get("dailyCombo").get("upgradeIds")
+        logger.debug(f"[{user_id}] Карты: {unlocked_cards}")
+        
         if len(unlocked_cards) == 3:
+            send_daily(token)
             break
         else:
             for upgrade in upgrades:
@@ -110,6 +113,7 @@ def buy_daily_cards(token):
                 for card in user_cards:
                     if upgrade_name.lower() == card.lower():
                         if upgrade_id in unlocked_cards and unlocked_cards != []:
+                            logger.warning(f"[{user_id}] Ежедневная карта {card} уже куплена.")
                             user_cards.remove(card)
                         else:
                             buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
@@ -156,10 +160,29 @@ def create_thread(token):
             logger.error("Exception occurred", exc_info=True)
             time.sleep(5)
 
+def send_daily(token):
+    user_info = get_user_info(generate_headers,token)[5].get("clickerUser")
+    info, upgrades = get_upgrades(generate_headers,token)
+    daily_combo = info.get("dailyCombo")
+    upgrade_ids = ['influencers', 'shit_coins', 'meme_coins']
+    daily_combo['upgradeIds'] = upgrade_ids
+    daily_combo['isClaimed'] = True
+
+    payload = {
+                "clickerUser": user_info,
+                "dailyCombo": daily_combo,
+                "upgradeIds": upgrade_ids
+            }
+    response = requests.post("https://api.hamsterkombat.io/clicker/claim-daily-combo", headers=generate_headers(token), json=payload)
+    if response.status_code != 400:
+        logger.debug(f"[{get_name(token)}] Забрал 5 млн. за ежедневное комбо")
+    else:
+        logger.warning(f"[{get_name(token)}] Ежедневное комбо уже собрано")
+
 # Запуск потоков для каждого токена
 for token in tokens:
-    # send_word(word, generate_headers, token)
-    # threading.Thread(target=get_boosts, args=(generate_headers, token,)).start()
-    # threading.Thread(target=get_profit_upgrades, args=(token,)).start()
-    # threading.Thread(target=create_thread, args=(token,)).start()
+    send_word(word, generate_headers, token)
+    threading.Thread(target=get_boosts, args=(generate_headers, token,)).start()
+    threading.Thread(target=get_profit_upgrades, args=(token,)).start()
+    threading.Thread(target=create_thread, args=(token,)).start()
     threading.Thread(target=buy_daily_cards, args=(token,)).start()

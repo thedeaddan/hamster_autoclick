@@ -72,7 +72,7 @@ def get_user_info(generate_headers, token):
     passive_sec = user.get("earnPassivePerSec")
     passive_hour = user.get("earnPassivePerHour")
     balance = user.get("balanceCoins")
-    return balance, user_id, available_taps, passive_sec, passive_hour
+    return balance, user_id, available_taps, passive_sec, passive_hour,info
 
 def get_upgrades(generate_headers,token):
     headers = generate_headers(token)
@@ -108,7 +108,7 @@ def buy_upgrade(upgrade, headers, user_id):
         return True
     else:
         if "Insufficient funds" in response.text:
-            logger.error(f"[{user_id}][{name}] Ошибка покупки, недостаточно средств.")
+            logger.error(f"[{user_id}][{name}] Ошибка покупки, недостаточно средств. ")
         else:
             logger.error(f"[{user_id}][{name}] Ошибка, код: {response.text}")
         return False
