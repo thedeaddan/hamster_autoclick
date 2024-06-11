@@ -98,6 +98,8 @@ def buy_daily_cards(token):
     user_cards = []
     user_cards += daily_cards
     while True: 
+        upgrades_price = []
+        upgrades_id = []
         info, upgrades = get_upgrades(generate_headers,token)
         user_id = get_name(token)
         unlocked_cards = info.get("dailyCombo").get("upgradeIds")
@@ -109,6 +111,7 @@ def buy_daily_cards(token):
         else:
             for upgrade in upgrades:
                 upgrade_name = upgrade.get("name")
+                upgrade_price = upgrade.get("price")
                 upgrade_id = upgrade.get("id")
                 for card in user_cards:
                     if upgrade_name.lower() == card.lower():
@@ -116,7 +119,15 @@ def buy_daily_cards(token):
                             logger.warning(f"[{user_id}] Ежедневная карта {card} уже куплена.")
                             user_cards.remove(card)
                         else:
-                            buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
+                            upgrades_id.append(upgrade)
+                            upgrades_price.append(upgrade_price)
+                            
+            if sum(upgrades_price) > 4900000:
+                logger.warning(f"[{user_id}] Стоимость карт больше 4,9 млн. Покупка ежедневных карт не выгодна.")
+                break
+            else:
+                for upgrade in upgrades_id:
+                    buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
         time.sleep(60)
         
 

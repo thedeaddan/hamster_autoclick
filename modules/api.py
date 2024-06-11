@@ -130,4 +130,4 @@ def send_daily(generate_headers,token):
     if response.status_code != 400:
         logger.debug(f"[{get_name(token)}] Забрал 5 млн. за ежедневное комбо")
     else:
-        logger.warning(f"[{get_name(token)}] Ежедневное комбо уже собрано")
+        logger.warning(f"[{get_name(token)}] Ежедневное комбо уже собрано или ошибка {response.text}")
