@@ -121,13 +121,25 @@ def buy_daily_cards(token):
                         else:
                             upgrades_id.append(upgrade)
                             upgrades_price.append(upgrade_price)
-                            
-            if sum(upgrades_price) > 4900000:
-                logger.warning(f"[{user_id}] Стоимость карт больше 4,9 млн. Покупка ежедневных карт не выгодна.")
-                break
+
+            buy = True
+            locked_cards = []
+            for upgrade in upgrades_id:
+                if upgrade.get("isAvailable") == True:
+                    pass
+                else:
+                    buy = False
+                    locked_cards.append(upgrade.get("name"))
+            if buy:                
+                if sum(upgrades_price) > 4900000:
+                    logger.warning(f"[{user_id}] Стоимость карт больше 4,9 млн. Покупка ежедневных карт не выгодна.")
+                    break
+                else:
+                    for upgrade in upgrades_id:
+                        print(upgrade)
+                        buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
             else:
-                for upgrade in upgrades_id:
-                    buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
+                logger.warning(f"[{user_id}] Для покупки ежедневных карт требуется разблокировка карт: {locked_cards}")
         time.sleep(60)
         
 
