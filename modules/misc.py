@@ -1,4 +1,4 @@
-from config import names,tokens
+from config import names,tokens,buy_profits
 
 
 def calc_profit(profit_percent_global,price,profit_per_hour):
@@ -49,6 +49,9 @@ def generate_headers(token):
 
 def get_name(token):
     return names[tokens.index(token)]
+
+def get_buy_status(token):
+    return buy_profits[tokens.index(token)]
 
 def format_number_with_dots(number):
     """

@@ -38,15 +38,17 @@ def get_profit_upgrades(token):
             user_id = get_name(token)
             headers = generate_headers(token)
             upgrades = get_upgrades(generate_headers,token)[1]
+            if get_buy_status(token):
+                if buy_type == "benefit":
+                    process_upgrades_by_benefit(upgrades, headers, user_id,token)
+                elif buy_type == "cheap":
+                    process_upgrades_by_price(upgrades, headers, user_id,token)
+                elif buy_type == "profit":
+                    process_upgrades_by_profit(upgrades, headers, user_id,token)
 
-            if buy_type == "benefit":
-                process_upgrades_by_benefit(upgrades, headers, user_id,token)
-            elif buy_type == "cheap":
-                process_upgrades_by_price(upgrades, headers, user_id,token)
-            elif buy_type == "profit":
-                process_upgrades_by_profit(upgrades, headers, user_id,token)
-
-            time.sleep(3)
+                time.sleep(1)
+            else:
+                time.sleep(10)
         except Exception as e:
             logger.error("Exception occurred", exc_info=True)
             time.sleep(5)
@@ -65,6 +67,7 @@ def process_upgrades_by_price(upgrades, headers, user_id,token):
             price = int(upgrade.get("price"))
             if check_balance(token,price):
                 buy_upgrade(upgrade, headers, user_id)
+                break
 
 def process_upgrades_by_profit(upgrades, headers, user_id,token):
     upgrades = sorted(upgrades, key=lambda x: x['profitPerHour'], reverse=True)
@@ -73,6 +76,7 @@ def process_upgrades_by_profit(upgrades, headers, user_id,token):
             price = int(upgrade.get("price"))
             if check_balance(token,price):
                 buy_upgrade(upgrade, headers, user_id)
+                break
 
 def should_buy_upgrade(upgrade):
     unlocked = upgrade.get("isAvailable")
@@ -136,11 +140,10 @@ def buy_daily_cards(token):
                     break
                 else:
                     for upgrade in upgrades_id:
-                        print(upgrade)
                         buy_upgrade(upgrade,generate_headers(token),user_id+"_daily")
             else:
                 logger.warning(f"[{user_id}] Для покупки ежедневных карт требуется разблокировка карт: {locked_cards}")
-        time.sleep(60)
+                time.sleep(60)
         
 
 def create_thread(token):
