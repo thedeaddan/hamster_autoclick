@@ -13,12 +13,24 @@ def calc_profit(profit_percent_global,price,profit_per_hour):
 
 def check_maxlevel(upgrade):
     try:
-        level = upgrade.get("condition").get("level")
-        if upgrade.get("maxLevel") == level:
-            return True
+        maxlevel = upgrade.get("maxLevel")
+        if maxlevel:
+            try:
+                level = upgrade.get("condition").get("level")
+                if maxlevel == level or maxlevel < level:
+                    return True
+                else:
+                    False
+            except:
+                level = upgrade.get("level")
+                if level > maxlevel:
+                    return True
+                else:
+                    False
         else:
-            False
-    except:
+            return False
+        
+    except Exception as e:
         return False
     
 def check_cooldown(upgrade):
